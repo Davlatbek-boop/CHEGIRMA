@@ -26,8 +26,7 @@ export class User extends Model<User, IUsersCreationAttr>{
 
     @Column({
         type: DataType.STRING(15),
-        unique: true,
-        allowNull: false
+        allowNull: false    
     })
     declare phone: string
 

@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { UsersModule } from './users/users.module';
 import { User } from './users/models/user.model';
+import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
 
 
 @Module({
@@ -20,6 +22,8 @@ import { User } from './users/models/user.model';
     logging: false,
   }),
   UsersModule,
+  AuthModule,
+  MailModule,
 ],
   controllers: [],
   providers: [],

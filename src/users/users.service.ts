@@ -22,12 +22,16 @@ export class UsersService {
     return this.userModel.create({...createUserDto, hashed_password});
   }
 
+  findUserByEmail(email: string){
+    return this.userModel.findOne({where:{email}})
+  }
+
   findAll() {
     return this.userModel.findAll();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} user`;
+    return this.userModel.findByPk(id);
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

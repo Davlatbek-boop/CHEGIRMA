@@ -6,6 +6,14 @@ import { User } from './users/models/user.model';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { AdminModule } from './admin/admin.module';
+import { RegionModule } from './region/region.module';
+import { Region } from './region/models/region.model';
+import { DistrictModule } from './district/district.module';
+import { District } from './district/models/district.model';
+import { StatusModule } from './status/status.module';
+import { Status } from './status/models/status.model';
+import { StoreModule } from './store/store.module';
+import { Store } from './store/models/store.model';
 
 
 @Module({
@@ -17,7 +25,7 @@ import { AdminModule } from './admin/admin.module';
     username: process.env.PG_USER,
     password: process.env.PG_PASSWORD,
     database: process.env.PG_DB,
-    models: [User],
+    models: [User, Region, District, Status, Store],
     autoLoadModels: true,
     sync: { alter: true },
     logging: false,
@@ -26,6 +34,10 @@ import { AdminModule } from './admin/admin.module';
   AuthModule,
   MailModule,
   AdminModule,
+  RegionModule,
+  DistrictModule,
+  StatusModule,
+  StoreModule,
 ],
   controllers: [],
   providers: [],

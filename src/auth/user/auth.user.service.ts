@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from '../../users/users.service';
@@ -92,71 +94,136 @@ export class AuthUserService {
     };
   }
 
-  async signOut(req: Request, res: Response) {
-    const refresh_token = req.cookies['refresh_token_user'];
-
-    if (!refresh_token) {
-      throw new UnauthorizedException(
-        'Cookieda User refresh tokeni aniqlanmadi',
-      );
+  async signOut(refreshToken, res: Response) {
+    
+    const userData = await this.jwtService.verify(refreshToken, {
+      secret: process.env.REFRESH_TOKEN_KEY,
+    })
+    
+    if (!userData) {
+      throw new ForbiddenException("user not verified");
     }
-
-    const payload = await this.jwtService.decode(refresh_token);
-
-    if (!payload) {
-      throw new UnauthorizedException("Token noto'g'ri");
+    
+    const hashed_refresh_token = ""
+    await this.userService.updateRefreshToken(
+      userData.id, hashed_refresh_token
+    )
+    
+    
+    res.clearCookie("refresh_token_user")
+    
+    const response = { 
+      message: "User logged out successfully"
     }
+    
+    res.status(200).send("User logged out successfully")
+    // const refresh_token = req.cookies['refresh_token_user'];
 
-    const user = await this.userService.findOne(payload.id);
+    // if (!refresh_token) {
+    //   throw new UnauthorizedException(
+    //     'Cookieda User refresh tokeni aniqlanmadi',
+    //   );
+    // }
+    // const payload = await this.jwtService.decode(refreshToken);
 
-    if (!user) {
-      throw new BadRequestException('Bunday tokenli foydalanuvchi topilmadi');
-    }
+    // if (!payload) {
+    //   throw new UnauthorizedException("Token noto'g'ri");
+    // }
 
-    res.clearCookie('refresh_token_user', {
-      httpOnly: true,
-    });
+    // const user = await this.userService.findOne(payload.id);
 
-    user.hashed_refresh_token = '';
-    await user.save();
+    // if (!user) {
+    //   throw new BadRequestException('Bunday tokenli foydalanuvchi topilmadi');
+    // }
 
-    return res.status(200).send('User logget out successfully');
+    // res.clearCookie('refresh_token_user', {
+    //   httpOnly: true,
+    // });
+
+    // user.hashed_refresh_token = '';
+    // await user.save();
+
+    // return res.status(200).send('User logget out successfully');
   }
 
-  async refreshTokenUser(req: Request, res: Response) {
-    const refresh_token = req.cookies['refresh_token_user'];
 
-    if (!refresh_token) {
-      throw new UnauthorizedException(
-        'Cookieda User refresh tokeni aniqlanmadi',
-      );
+
+  
+  async refreshTokenUser(userId: number, refresh_token: string, res: Response) {
+
+    const decodedToken = await this.jwtService.decode(refresh_token)
+
+    if(userId !== decodedToken["id"]){
+      throw new ForbiddenException("Ruxsat etilmagan")
     }
 
-    const payload = await this.jwtService.decode(refresh_token);
+    const user = await this.userService.findOne(userId)
 
-    if (!payload) {
-      throw new UnauthorizedException("Token noto'g'ri");
+    if(!user || !user.hashed_refresh_token){
+      throw new NotFoundException("User not found")
     }
 
-    const user = await this.userService.findOne(payload.id);
+    const tokenMatch = await bcrypt.compare(
+      refresh_token,
+      user.hashed_refresh_token
+    )
 
-    if (!user) {
-      throw new BadRequestException('Bunday refresh tokenli user topilmadi');
+    if(!tokenMatch){
+      throw new ForbiddenException("Forbidden")
     }
 
-    const { accessToken, refreshToken } = await this.generateTokens(user);
+    const {accessToken, refreshToken} = await this.generateTokens(user)
 
-    res.cookie('refresh_token_user', refreshToken, {
-      httpOnly: true,
+    const hashed_refresh_token = await bcrypt.hash(refreshToken, 7)
+
+    await this.userService.updateRefreshToken(user.id, hashed_refresh_token)
+
+    res.cookie("refresh_token", refreshToken, {
       maxAge: Number(process.env.REFRESH_COOKIE_TIME),
-    });
+      httpOnly: true
+    })
 
-    user.hashed_refresh_token = await bcrypt.hash(refreshToken, 7);
-    await user.save();
 
-    return res.status(200).send({
-      message: 'Refresh token yangilandi',
-      accessToken,
-    });
+    const response = {
+      message: "User refreshed",
+      userId: user.id,
+      access_Token: accessToken,
+    }
+
+    return response;
+    // const refresh_token = req.cookies['refresh_token_user'];
+
+  //   if (!refresh_token) {
+  //     throw new UnauthorizedException(
+  //       'Cookieda User refresh tokeni aniqlanmadi',
+  //     );
+  //   }
+
+  //   const payload = await this.jwtService.decode(refresh_token);
+
+  //   if (!payload) {
+  //     throw new UnauthorizedException("Token noto'g'ri");
+  //   }
+
+  //   const user = await this.userService.findOne(payload.id);
+
+  //   if (!user) {
+  //     throw new BadRequestException('Bunday refresh tokenli user topilmadi');
+  //   }
+
+  //   const { accessToken, refreshToken } = await this.generateTokens(user);
+
+  //   res.cookie('refresh_token_user', refreshToken, {
+  //     httpOnly: true,
+  //     maxAge: Number(process.env.REFRESH_COOKIE_TIME),
+  //   });
+
+  //   user.hashed_refresh_token = await bcrypt.hash(refreshToken, 7);
+  //   await user.save();
+
+  //   return res.status(200).send({
+  //     message: 'Refresh token yangilandi',
+  //     accessToken,
+  //   });
   }
 }

@@ -79,4 +79,13 @@ export class UsersService {
       // is_active: updatedUser[1][0].is_active,
     };
   }
+
+  async updateRefreshToken(id: number, hashed_refresh_token: string) {
+    const updatedUser = await this.userModel.update(
+      { hashed_refresh_token },
+      { where: { id } },
+    );
+
+    return updatedUser;
+  }
 }

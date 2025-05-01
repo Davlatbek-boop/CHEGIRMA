@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 
@@ -12,6 +12,25 @@ async function start() {
     });
 
     app.use(cookieParser());
+
+    app.enableCors({
+      origin: (origin, callback) => {
+        const allowedOrigins = [
+          'http://localhost:8000',
+          'http://localhost:3000',
+          'https://skidkachi.uz',
+          'https://api.skidkachi.uz',
+          'https://skidkachi.vercel.app',
+        ];
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new BadRequestException('Not allowed by CORS'));
+        }
+      },
+      methods: 'GET, HEAD, PUT, PATCH, POST, DELETE',
+      credentials: true,
+    });
 
     app.useGlobalPipes(new ValidationPipe());
 

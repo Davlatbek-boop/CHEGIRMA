@@ -6,11 +6,14 @@ import {
   Table,
   ForeignKey,
   BelongsTo,
+  HasMany,
 } from 'sequelize-typescript';
 import { User } from '../../users/models/user.model';
 import { Region } from '../../region/models/region.model';
 import { District } from '../../district/models/district.model';
 import { Status } from '../../status/models/status.model';
+import { StoreSocialLink } from '../../store-social_links/models/store-social_link.models';
+import { Discount } from '../../discounts/models/discount.model';
 
 
 interface IStoreCreationAttr {
@@ -113,4 +116,11 @@ export class Store extends Model<Store, IStoreCreationAttr> {
 
   @BelongsTo(()=> Status)
   status: Status
+
+  @HasMany(()=> StoreSocialLink)
+    storeSocialLink: StoreSocialLink[]
+
+  @HasMany(()=> Discount)
+  discount: Discount[]
 }
+

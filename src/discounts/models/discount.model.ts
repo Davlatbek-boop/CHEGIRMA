@@ -5,11 +5,16 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
+  BelongsToMany,
+  HasMany,
 } from 'sequelize-typescript';
 import { ApiProperty } from '@nestjs/swagger';
 import { Store } from '../../store/models/store.model';
 import { Category } from '../../category/models/category.model';
 import { Type } from '../../type/models/type.model';
+import { User } from '../../users/models/user.model';
+import { Favourites } from '../../users/models/favourites.model';
+import { Review } from '../../reviews/model/review.model';
 
 interface IDiscountCreationAttr {
   title: string;
@@ -87,13 +92,18 @@ export class Discount extends Model<Discount, IDiscountCreationAttr> {
   @Column({ type: DataType.INTEGER, allowNull: false })
   typeId: number;
 
-  @BelongsTo(()=> Store)
-  store: Store
+  @BelongsTo(() => Store)
+  store: Store;
 
-  @BelongsTo(()=> Category)
-  category: Category
+  @BelongsTo(() => Category)
+  category: Category;
 
-  @BelongsTo(()=> Type)
-  type: Type
+  @BelongsTo(() => Type)
+  type: Type;
 
+  @BelongsToMany(() => User, () => Favourites)
+  user: User[];
+
+  @HasMany(() => Review)
+  review: Review;
 }

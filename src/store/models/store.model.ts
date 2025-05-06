@@ -7,6 +7,7 @@ import {
   ForeignKey,
   BelongsTo,
   HasMany,
+  BelongsToMany,
 } from 'sequelize-typescript';
 import { User } from '../../users/models/user.model';
 import { Region } from '../../region/models/region.model';
@@ -14,6 +15,7 @@ import { District } from '../../district/models/district.model';
 import { Status } from '../../status/models/status.model';
 import { StoreSocialLink } from '../../store-social_links/models/store-social_link.models';
 import { Discount } from '../../discounts/models/discount.model';
+import { StoreSupscribes } from '../../users/models/store-supscribes.model';
 
 
 interface IStoreCreationAttr {
@@ -122,5 +124,8 @@ export class Store extends Model<Store, IStoreCreationAttr> {
 
   @HasMany(()=> Discount)
   discount: Discount[]
+
+   @BelongsToMany(()=> User, ()=> StoreSupscribes)
+  manyUser: User[]
 }
 

@@ -27,6 +27,15 @@ import { StoreSocialLinksModule } from './store-social_links/store-social_links.
 import { StoreSocialLink } from './store-social_links/models/store-social_link.models';
 import { DiscountsModule } from './discounts/discounts.module';
 import { Discount } from './discounts/models/discount.model';
+import { Bot } from './bot/model/bot.model';
+import { AdsModule } from './ads/ads.module';
+import { Otp } from './users/models/otp.model';
+import { Address } from './bot/model/address.model';
+import { Favourites } from './users/models/favourites.model';
+import { StoreSupscribes } from './users/models/store-supscribes.model';
+import { ReviewsModule } from './reviews/reviews.module';
+import { Review } from './reviews/model/review.model';
+import { Ad } from './ads/models/ad.model';
 
 @Module({
   imports: [
@@ -48,7 +57,25 @@ import { Discount } from './discounts/models/discount.model';
       username: process.env.PG_USER,
       password: process.env.PG_PASSWORD,
       database: process.env.PG_DB,
-      models: [User, Region, District, Status, Store, Type, Category, SocialMediaType, StoreSocialLink, Discount],
+      models: [
+        User,
+        Region,
+        District,
+        Status,
+        Store,
+        Type,
+        Category,
+        SocialMediaType,
+        StoreSocialLink,
+        Discount,
+        Bot,
+        Otp,
+        Address,
+        Favourites,
+        StoreSupscribes,
+        Review,
+        Ad
+      ],
       autoLoadModels: true,
       sync: { alter: true },
       logging: false,
@@ -67,6 +94,8 @@ import { Discount } from './discounts/models/discount.model';
     SocialMediaTypeModule,
     StoreSocialLinksModule,
     DiscountsModule,
+    AdsModule,
+    ReviewsModule,
   ],
   controllers: [],
   providers: [],

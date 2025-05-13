@@ -28,6 +28,11 @@ export class BotUpdate {
     return this.botService.onStop(ctx)
   }
 
+  @On('location')
+  async onLocation(@Ctx() ctx: Context){
+    await this.botService.onLocation(ctx)
+  }
+
 
   // @On('photo')
   // async onPhoto(@Ctx() ctx: Context) {
@@ -201,14 +206,14 @@ export class BotUpdate {
 
   @On('message')
   async onMessage(@Ctx() ctx: Context) {
-    console.log(ctx.botInfo);
-    console.log('--------------------');
-    console.log(ctx.chat);
-    console.log('--------------------');
-    console.log(ctx.chat!.id);
-    console.log('--------------------');
-    console.log(ctx.from);
-    console.log('--------------------');
-    console.log(ctx.from!.id);
+    // console.log(ctx.botInfo);
+    // console.log('--------------------');
+    // console.log(ctx.chat);
+    // console.log('--------------------');
+    // console.log(ctx.chat!.id);
+    // console.log('--------------------');
+    // console.log(ctx.from);
+    // console.log('--------------------');
+    // console.log(ctx.from!.id);
   }
 } 

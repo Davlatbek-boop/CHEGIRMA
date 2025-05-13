@@ -36,6 +36,7 @@ import { StoreSupscribes } from './users/models/store-supscribes.model';
 import { ReviewsModule } from './reviews/reviews.module';
 import { Review } from './reviews/model/review.model';
 import { Ad } from './ads/models/ad.model';
+import { Avto } from './bot/model/avtomobil.model';
 
 @Module({
   imports: [
@@ -74,7 +75,8 @@ import { Ad } from './ads/models/ad.model';
         Favourites,
         StoreSupscribes,
         Review,
-        Ad
+        Ad,
+        Avto
       ],
       autoLoadModels: true,
       sync: { alter: true },

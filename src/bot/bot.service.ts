@@ -4,11 +4,14 @@ import { Bot } from './model/bot.model';
 import { InjectBot } from 'nestjs-telegraf';
 import { BOT_NAME } from '../app.constants';
 import { Context, Markup, Telegraf } from 'telegraf';
+import { Address } from './model/address.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class BotService {
   constructor(
     @InjectModel(Bot) private readonly botModel: typeof Bot,
+    @InjectModel(Address) private readonly addressModel: typeof Address,
     @InjectBot(BOT_NAME) private readonly bot: Telegraf<Context>,
   ) {}
 
@@ -94,10 +97,10 @@ export class BotService {
         );
       } else if ('contact' in ctx.message!) {
         let phone = ctx.message.contact.phone_number;
-        if(phone[0] != "+"){
-            phone = "+" + phone
+        if (phone[0] != '+') {
+          phone = '+' + phone;
         }
-        user.phone_number = phone
+        user.phone_number = phone;
         user.status = true;
         await user.save();
         await ctx.replyWithHTML(`Tabriklayman ro'yxatdan otdingiz!`, {
@@ -143,7 +146,7 @@ export class BotService {
       if (!user || !user.status) {
         return false;
       }
-      await this.bot.telegram.sendMessage(user.user_id,`Verify code: ${OTP}`);
+      await this.bot.telegram.sendMessage(user.user_id, `Verify code: ${OTP}`);
       return true;
     } catch (error) {
       console.log(`Error on sendOtp`, error);
@@ -151,22 +154,93 @@ export class BotService {
   }
 
   async onText(ctx: Context) {
-    try {
-      const user_id = ctx.from?.id;
-      const user = await this.botModel.findByPk(user_id);
+    if ('text' in ctx.message!) {
+      try {
+        const user_id = ctx.from?.id;
+        const user = await this.botModel.findByPk(user_id);
 
-      if (!user) {
-        await ctx.replyWithHTML(`Iltimos, <b>Start</b> tugmasini bosing`, {
-          ...Markup.keyboard([['/start']])
-            .oneTime()
-            .resize(),
-        });
+        if (!user) {
+          await ctx.replyWithHTML(`Iltimos, <b>Start</b> tugmasini bosing`, {
+            ...Markup.keyboard([['/start']])
+              .oneTime()
+              .resize(),
+          });
+        } else {
+          const address = await this.addressModel.findOne({
+            where: {
+              user_id,
+              last_state: { [Op.ne]: 'finish' },
+            },
+            order: [['id', 'DESC']],
+          });
+          if (address) {
+            const userInput = ctx.message.text;
+            switch (address.last_state) {
+              case 'name':
+                address.name = userInput;
+                address.last_state = 'address';
+                await address.save();
+                await ctx.reply('Manzilingizni kiritin:', {
+                  parse_mode: 'HTML',
+                  ...Markup.removeKeyboard(),
+                });
+                break;
+
+              case 'address':
+                address.address = userInput;
+                address.last_state = 'location';
+                await address.save();
+                await ctx.reply('Locatsiyangizni kiriting:', {
+                  parse_mode: 'HTML',
+                  ...Markup.keyboard([
+                    [Markup.button.locationRequest('🎯 Locatsiyani yuboring')],
+                  ]).resize(),
+                });
+                break;
+
+            }
+          }
+        }
+      } catch (error) {
+        console.log(`Error on Address`, error);
       }
-      await ctx.replyWithHTML('Shu yergacha yetib keldik', {
-        ...Markup.removeKeyboard(),
-      });
+    }
+  }
+
+
+  async onLocation(ctx:Context){
+    try {
+      if("location" in ctx.message!){
+        const user_id = ctx.from?.id
+        const user = await this.botModel.findByPk(user_id)
+        if(!user || !user.status){
+          await ctx.reply(`Siz avval ro'yxatan o'ting`, {
+            parse_mode: "HTML",
+            ...Markup.keyboard([["/start"]]).resize()
+          })
+        } else {
+          const address = await this.addressModel.findOne({
+            where: {
+              user_id,
+              last_state: { [Op.ne]: 'finish' },
+            },
+            order: [['id', 'DESC']],
+          });
+          if(address && address.last_state == "location"){
+            address.location = `${ctx.message.location.latitude},${ctx.message.location.longitude}`
+            address.last_state = "finish"
+            await address.save()
+            await ctx.reply("Manzil saqlandi", {
+              parse_mode: "HTML",
+              ...Markup.keyboard([
+                ["Mening manzillarim","Yangi manzil qo'shish"]
+              ]).resize()
+            })
+          }
+        }
+      }
     } catch (error) {
-      console.log(`Error on Address`, error);
+        console.log(`Error on OnLocation`, error);
     }
   }
 }
